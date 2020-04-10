@@ -46,7 +46,7 @@ int main (){
   int pot = 0;
   //Perma-loop
   while(1){
-    pot = readAverage(TRIMPOT, 2);
+    pot = read_trimpot();
   }
   return 0;
 }
