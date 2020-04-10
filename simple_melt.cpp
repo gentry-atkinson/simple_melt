@@ -43,10 +43,20 @@ int main (){
   set_digital_output(headlight_pin, LOW);
   set_analog_mode(MODE_10_BIT); //trimpot output will be 0-1023
 
-  int pot = 0;
+  int pot = 0, hold = 0, timer=0;
   //Perma-loop
   while(1){
     pot = read_trimpot();
+    hold = 89 + (133 * (1023 - pot)/1023);
+    timer = (timer + 1)%hold;
+    // if (timer<10)
+    //   set_digital_output(headlight_pin, HIGH);
+    // else
+    //   set_digital_output(headlight_pin, LOW);
+    set_digital_output(headlight_pin, HIGH);
+    delay_ms(10);
+    set_digital_output(headlight_pin, LOW);
+    delay_ms(pot);
   }
   return 0;
 }

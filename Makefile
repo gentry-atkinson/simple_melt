@@ -24,6 +24,7 @@ clean:
 	$(OBJ2HEX) -R .eeprom -O ihex $< $@
 
 simple_melt.o: simple_melt.cpp
+		avr-gcc -g -Wall -mcall-prologues -mmcu=atmega328p  -Os   -c -o simple_melt.o simple_melt.cpp
 
 %.obj: $(OBJECT_FILES)
 	$(CC) $(CFLAGS) $(OBJECT_FILES) $(LDFLAGS) -o $@
