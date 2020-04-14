@@ -46,7 +46,7 @@ int main (){
   //unsigned int hold = 0;
   //unsigned int timer=0;
   unsigned int throttle=0, steering=0, ch3=0;
-  unsigned int motor1Out, motor2Out;
+  //unsigned int motor1Out, motor2Out;
   unsigned int neutralPulse;
 
   //Set Up
@@ -64,7 +64,7 @@ int main (){
     //hold = FAST_SPIN + (SLOW_SPIN-FAST_SPIN)*((1023-pot)/1023);
     //timer = (timer + 1)%hold;
     read_pins(&throttle, &steering, &ch3);
-    if ((throttle - neutralPulse) > 1000){
+    if ((throttle - neutralPulse) > 100){
       //spin
       red_led(1);
       set_motors(128, 128);
