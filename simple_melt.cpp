@@ -37,46 +37,55 @@
 #define HIGH_PULSE  2
 #define ANY_PULSE   3
 
-void read_pins(int*, int*, int*);
-void set_neutral_pulse(int*);
+void read_pins(unsigned int*, unsigned int*, unsigned int*);
+void set_neutral_pulse(unsigned int*);
 
 int main (){
+  //Vars live here
+  unsigned int pot = 0;
+  //unsigned int hold = 0;
+  //unsigned int timer=0;
+  unsigned int throttle=0, steering=0, ch3=0;
+  unsigned int motor1Out, motor2Out;
+  unsigned int neutralPulse;
+
   //Set Up
   set_motors(0, 0);
+  red_led(0);
+  set_digital_output(headlight_pin, HIGH);
+  delay_ms(500);
   set_digital_output(headlight_pin, LOW);
   set_analog_mode(MODE_10_BIT); //trimpot output will be 0-1023
-
-  unsigned int pot = 0;
-  unsigned int hold = 0;
-  unsigned int timer=0;
+  set_neutral_pulse(&neutralPulse);
 
   //Perma-loop
   while(1){
     pot =  analog_read_average(TRIMPOT, 5);
-    hold = FAST_SPIN + (SLOW_SPIN-FAST_SPIN)*((1023-pot)/1023);
-    timer = (timer + 1)%hold;
-    // if (timer<10)
-    //   set_digital_output(headlight_pin, HIGH);
-    // else
-    //    set_digital_output(headlight_pin, LOW);
-    // delay_ms(10);
-    set_digital_output(headlight_pin, HIGH);
-    delay_ms(10);
-    set_digital_output(headlight_pin, LOW);
-    delay_ms(pot);
+    //hold = FAST_SPIN + (SLOW_SPIN-FAST_SPIN)*((1023-pot)/1023);
+    //timer = (timer + 1)%hold;
+    read_pins(&throttle, &steering, &ch3);
+    if ((throttle - neutralPulse) > 1000){
+      //spin
+      red_led(1);
+      set_motors(128, 128);
+    }
+    else{
+      red_led(0);
+      set_motors(0, 0);
+    }
   }
   return 0;
 }
 
-void set_neutral_pulse(int* neutralPulse){
+void set_neutral_pulse(unsigned int* neutralPulse){
   static struct PulseInputStruct pulseInfo;
   long int counter=0;
 
   do{
     get_pulse_info(0, &pulseInfo);
     counter++;
-    if(counter%10000 == 0){
-      if(counter%20000 == 0){
+    if(counter%1000 == 0){
+      if(counter%2000 == 0){
         set_digital_output(headlight_pin, LOW);
         counter = 0;
       }
@@ -84,14 +93,15 @@ void set_neutral_pulse(int* neutralPulse){
         set_digital_output(headlight_pin, HIGH);
       }
     }
-  }while((get_ticks()-pulseInfo.lastPCTime) > 1000);
+    delay_ms(1);
+  }while((get_ticks()-pulseInfo.lastPCTime) > 10000);
 
   *neutralPulse=(pulse_to_microseconds(pulseInfo.lastHighPulse));
   set_digital_output(headlight_pin, LOW);
 
 }
 
-void read_pins(int* throttle, int* steering, int* ch3){
+void read_pins(unsigned int* throttle, unsigned int* steering, unsigned int* ch3){
 
   red_led(1);
 
