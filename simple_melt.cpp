@@ -19,6 +19,8 @@
 #define FAST_SPIN 89
 
 #include <pololu/orangutan>
+#include <avr/io.h>
+#include <stdio.h>
 
 //Connected pins on Baby Orangutan. Change to fit your setup
 #define headlight_pin IO_D7
@@ -57,6 +59,7 @@ int main (){
   set_digital_output(headlight_pin, LOW);
   set_analog_mode(MODE_10_BIT); //trimpot output will be 0-1023
   set_neutral_pulse(&neutralPulse);
+  printf("Neutral pulse is %d\n", neutralPulse);
 
   //Perma-loop
   while(1){
@@ -80,7 +83,7 @@ int main (){
 void set_neutral_pulse(unsigned int* neutralPulse){
   static struct PulseInputStruct pulseInfo;
   long int counter=0;
-
+  red_led(0);
   do{
     get_pulse_info(0, &pulseInfo);
     counter++;
