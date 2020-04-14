@@ -37,26 +37,89 @@
 #define HIGH_PULSE  2
 #define ANY_PULSE   3
 
+void read_pins(int*, int*, int*);
+void set_neutral_pulse(int*);
+
 int main (){
   //Set Up
   set_motors(0, 0);
   set_digital_output(headlight_pin, LOW);
   set_analog_mode(MODE_10_BIT); //trimpot output will be 0-1023
 
-  int pot = 0, hold = 0, timer=0;
+  unsigned int pot = 0;
+  unsigned int hold = 0;
+  unsigned int timer=0;
+
   //Perma-loop
   while(1){
-    pot = read_trimpot();
-    hold = 89 + (133 * (1023 - pot)/1023);
+    pot =  analog_read_average(TRIMPOT, 5);
+    hold = FAST_SPIN + (SLOW_SPIN-FAST_SPIN)*((1023-pot)/1023);
     timer = (timer + 1)%hold;
     // if (timer<10)
     //   set_digital_output(headlight_pin, HIGH);
     // else
-    //   set_digital_output(headlight_pin, LOW);
+    //    set_digital_output(headlight_pin, LOW);
+    // delay_ms(10);
     set_digital_output(headlight_pin, HIGH);
     delay_ms(10);
     set_digital_output(headlight_pin, LOW);
     delay_ms(pot);
   }
   return 0;
+}
+
+void set_neutral_pulse(int* neutralPulse){
+  static struct PulseInputStruct pulseInfo;
+  long int counter=0;
+
+  do{
+    get_pulse_info(0, &pulseInfo);
+    counter++;
+    if(counter%10000 == 0){
+      if(counter%20000 == 0){
+        set_digital_output(headlight_pin, LOW);
+        counter = 0;
+      }
+      else{
+        set_digital_output(headlight_pin, HIGH);
+      }
+    }
+  }while((get_ticks()-pulseInfo.lastPCTime) > 1000);
+
+  *neutralPulse=(pulse_to_microseconds(pulseInfo.lastHighPulse));
+  set_digital_output(headlight_pin, LOW);
+
+}
+
+void read_pins(int* throttle, int* steering, int* ch3){
+
+  red_led(1);
+
+  static struct PulseInputStruct pulseInfo;
+  get_pulse_info(0, &pulseInfo);
+
+  //freeze if signal drops
+  if((get_ticks()-pulseInfo.lastPCTime) > 10000){
+    *throttle = 0;
+    *steering = 0;
+    return;
+  }
+
+  *throttle = (pulse_to_microseconds(pulseInfo.lastHighPulse));
+
+  get_pulse_info(1, &pulseInfo);
+  *steering = (pulse_to_microseconds(pulseInfo.lastHighPulse));
+
+  if((get_ticks()-pulseInfo.lastPCTime) > 10000){
+    *throttle = 0;
+    *steering = 0;
+    return;
+  }
+
+  get_pulse_info(2, &pulseInfo);
+  *ch3 = (pulse_to_microseconds(pulseInfo.lastHighPulse));
+
+
+  red_led(0);
+  return;
 }
